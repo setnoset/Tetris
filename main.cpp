@@ -15,6 +15,9 @@
 
 #include <dirent.h>
 
+// Place SFML compatible music files (e.g. music.ogg) in MUSIC_DIRECTORY
+constexpr const char *MUSIC_DIRECTORY = "Music";
+
 class Board {
 public:
     static constexpr std::size_t nCol = 10;
@@ -84,15 +87,17 @@ void Board::draw(sf::RenderWindow &window, sf::RectangleShape &square) const {
     square.setPosition(pos);
 }
 
+// Position of four squares occupied by piece, relative to its (x, y) position
 using RotationalState = std::vector<sf::Vector2i>;
 
+// Tetris piece
 class Tetromino {
 public:
     enum class Type {O, I, T, J, L, S, Z};
     enum class Action {down, right, left, clockwise, anticlockwise};
     Tetromino(Type t): type(t), color(color_map[t]), rots(rotation_map[t]), x(Board::nCol/2), y(0), r(0) {}
     Tetromino &act(Action a);
-    std::vector<sf::Vector2i> squares() const;
+    std::vector<sf::Vector2i> squares() const; // squares occupied by piece
     Type get_type() const { return type; }
     sf::Color get_color() const { return color; }
 private:
@@ -143,6 +148,7 @@ std::map<Tetromino::Type, sf::Color> Tetromino::color_map = {
     {Type::Z, sf::Color::Red}
 };
 
+// Rotating the piece will cycle through its rotational states
 std::map<Tetromino::Type, std::vector<RotationalState>> Tetromino::rotation_map = {
     {Type::O, {
         {{0,0}, {0,1}, {1,0}, {1,1}}
@@ -322,7 +328,7 @@ pressed_keys {
     {sf::Keyboard::Up, false},
     {sf::Keyboard::Space, false}
 },
-music("Music")
+music(MUSIC_DIRECTORY)
 {
     square.setOutlineColor(sf::Color::Black);
     square.setOutlineThickness(1.0f);
@@ -377,7 +383,7 @@ void Game::update() {
         world.act_if_legal(a);
     frame_actions.clear();
     
-    if (!world)
+    if (!world) // if game over, restart
         world = World();
     
     music.ensure_play();
